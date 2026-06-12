@@ -44,17 +44,17 @@ Create your private environment file:
 Example .env:
 
     DASHBOARD_USER=admin
-    DASHBOARD_PASS=change-me
+    DASHBOARD_PASS=admin
 
     NETPRISMA_EMAIL=your-landbook-email@example.com
     NETPRISMA_PASSWORD=your-landbook-password
 
     NETPRISMA_USER_DOMAIN=U.SP.8589934603
-    NETPRISMA_USER_DOMAIN_SECRET=your-region-domain-secret
+    NETPRISMA_USER_DOMAIN_SECRET=pUTp5goB1bLinprRQMmK3EPiiuPiGrJtKUNptWRXVmP
 
-    NETPRISMA_UID=
-    NETPRISMA_FID=
-    NETPRISMA_PRODUCT_KEY=
+    #NETPRISMA_UID=
+    #NETPRISMA_FID=
+    #NETPRISMA_PRODUCT_KEY=
 
 Start the container:
 
@@ -68,11 +68,11 @@ Open the dashboard:
 
 Get current fan state:
 
-    curl -u admin:change-me http://YOUR_SERVER_IP:8099/api/state
+    curl -u admin:admin http://YOUR_SERVER_IP:8099/api/state
 
 Send a command:
 
-    curl -u admin:change-me \
+    curl -u admin:admin\
       -H "Content-Type: application/json" \
       -d '{"device_key":"DEVICE_KEY","action":"on"}' \
       http://YOUR_SERVER_IP:8099/api/command
@@ -91,14 +91,14 @@ Supported actions:
 
 Turn all fans on:
 
-    curl -u admin:change-me \
+    curl -u admin:admin \
       -H "Content-Type: application/json" \
       -d '{"action":"on"}' \
       http://YOUR_SERVER_IP:8099/api/all
 
 Turn all fans off:
 
-    curl -u admin:change-me \
+    curl -u admin:admin \
       -H "Content-Type: application/json" \
       -d '{"action":"off"}' \
       http://YOUR_SERVER_IP:8099/api/all
@@ -113,8 +113,6 @@ Keep these private:
 - Bearer tokens
 - refresh tokens
 - real device keys
-
-Before publishing, scan the repository and make sure no real account values, device keys, Bearer tokens, or passwords are present.
 
 ## Disclaimer
 
