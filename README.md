@@ -15,6 +15,28 @@ This project runs locally in Docker and provides:
 - Basic-auth protection
 ## Screenshot of the Dashboard
 ![Dashboard screenshot](assets/dashboard.png)
+
+## About the fan
+
+This project was built around the Costco OmniBreeze Tower Fan with Internal Oscillation and Wi-Fi.
+
+The fan keeps the stock Wi-Fi module and still works with the official Landbook / NetPrisma app. This project does not replace the firmware or require opening the fan. It provides a local Docker dashboard and REST API bridge on top of the existing cloud connection.
+
+Product reference:
+
+    https://www.costco.com/p/-/omnibreeze-tower-fan-with-internal-oscillation-and-wi-fi/4000230757
+
+Typical supported features exposed by this project include:
+
+- Power on/off
+- Fan speed
+- Internal oscillation
+- Sound toggle
+- Temperature/status reporting
+- Home Assistant integration
+
+Model behavior may vary by region, firmware, or future app/API changes.
+
 ## Important notes
 
 This project is unofficial and is not affiliated with NetPrisma, Landbook, Quectel, or OmniBreeze.
