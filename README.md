@@ -174,6 +174,171 @@ Example all-fans service call:
 
 For full Home Assistant fan entities, create template fans on top of these REST commands and the `/api/state` response. The API returns each fan by device key, including power, speed, temperature, oscillation, sound, online status, and product key.
 
+## Home Assistant dashboard example
+
+This is an example Home Assistant dashboard card using the fan entities, temperature sensors, and sound switches exposed through the REST/template integration.
+
+![Home Assistant dashboard](assets/hass.png)
+
+The top row uses native Home Assistant tile cards for fan control. The second row uses Mushroom template cards to show temperature and sound status. Holding or double-tapping the status cards toggles the fan sound switch.
+
+Example Lovelace card:
+
+    type: vertical-stack
+    cards:
+      - type: heading
+        heading: Fans
+        icon: mdi:fan
+
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+          - type: tile
+            entity: fan.sami_fan
+            name: Sami Fan
+            icon: mdi:fan
+            vertical: false
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+            double_tap_action:
+              action: more-info
+            features:
+              - type: fan-speed
+              - type: fan-oscillate
+            features_position: bottom
+
+          - type: tile
+            entity: fan.kitchen_fan
+            name: Kitchen Fan
+            icon: mdi:fan
+            vertical: false
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+            double_tap_action:
+              action: more-info
+            features:
+              - type: fan-speed
+              - type: fan-oscillate
+            features_position: bottom
+
+          - type: tile
+            entity: fan.bedroom_fan
+            name: Bedroom Fan
+            icon: mdi:fan
+            vertical: false
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+            double_tap_action:
+              action: more-info
+            features:
+              - type: fan-speed
+              - type: fan-oscillate
+            features_position: bottom
+
+      - type: heading
+        heading: Fan Status
+        icon: mdi:thermometer
+
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+          - type: custom:mushroom-template-card
+            entity: sensor.sami_fan_temperature
+            primary: Sami
+            secondary: >
+              {{ states('sensor.sami_fan_temperature') }}
+              {{ state_attr('sensor.sami_fan_temperature', 'unit_of_measurement') or '°F' }}
+              · Sound {{ states('switch.sami_fan_sound') | title }}
+            icon: mdi:thermometer
+            icon_color: |
+              {% if is_state('switch.sami_fan_sound', 'on') %}
+                amber
+              {% else %}
+                disabled
+              {% endif %}
+            layout: horizontal
+            multiline_secondary: false
+            tap_action:
+              action: more-info
+            hold_action:
+              action: call-service
+              service: switch.toggle
+              target:
+                entity_id: switch.sami_fan_sound
+            double_tap_action:
+              action: call-service
+              service: switch.toggle
+              target:
+                entity_id: switch.sami_fan_sound
+
+          - type: custom:mushroom-template-card
+            entity: sensor.kitchen_fan_temperature
+            primary: Kitchen
+            secondary: >
+              {{ states('sensor.kitchen_fan_temperature') }}
+              {{ state_attr('sensor.kitchen_fan_temperature', 'unit_of_measurement') or '°F' }}
+              · Sound {{ states('switch.kitchen_fan_sound') | title }}
+            icon: mdi:thermometer
+            icon_color: |
+              {% if is_state('switch.kitchen_fan_sound', 'on') %}
+                amber
+              {% else %}
+                disabled
+              {% endif %}
+            layout: horizontal
+            multiline_secondary: false
+            tap_action:
+              action: more-info
+            hold_action:
+              action: call-service
+              service: switch.toggle
+              target:
+                entity_id: switch.kitchen_fan_sound
+            double_tap_action:
+              action: call-service
+              service: switch.toggle
+              target:
+                entity_id: switch.kitchen_fan_sound
+
+          - type: custom:mushroom-template-card
+            entity: sensor.bedroom_fan_temperature
+            primary: Bedroom
+            secondary: >
+              {{ states('sensor.bedroom_fan_temperature') }}
+              {{ state_attr('sensor.bedroom_fan_temperature', 'unit_of_measurement') or '°F' }}
+              · Sound {{ states('switch.bedroom_fan_sound') | title }}
+            icon: mdi:thermometer
+            icon_color: |
+              {% if is_state('switch.bedroom_fan_sound', 'on') %}
+                amber
+              {% else %}
+                disabled
+              {% endif %}
+            layout: horizontal
+            multiline_secondary: false
+            tap_action:
+              action: more-info
+            hold_action:
+              action: call-service
+              service: switch.toggle
+              target:
+                entity_id: switch.bedroom_fan_sound
+            double_tap_action:
+              action: call-service
+              service: switch.toggle
+              target:
+                entity_id: switch.bedroom_fan_sound
+
+Note: the status cards require the Mushroom Cards custom integration. The fan tiles use native Home Assistant tile cards.
+
 ## Security
 
 Keep these private:
