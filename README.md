@@ -104,6 +104,76 @@ Turn all fans off:
       -d '{"action":"off"}' \
       http://YOUR_SERVER_IP:8099/api/all
 
+## Home Assistant integration
+
+This dashboard can be used as a small local bridge for Home Assistant. The container exposes REST endpoints that Home Assistant can poll and call without needing to reverse-engineer the fan inside Home Assistant itself.
+
+Recommended setup:
+
+- Run this container on the same LAN as Home Assistant.
+- Keep the dashboard behind Basic Auth.
+- Store the dashboard password in `secrets.yaml`.
+- Use `/api/state` for fan status.
+- Use `/api/command` for power, speed, oscillation, and sound commands.
+- Use `/api/all` for all-fan on/off commands.
+
+Example `secrets.yaml`:
+
+    netprisma_dashboard_password: change-me
+
+Example `configuration.yaml` REST command:
+
+    rest_command:
+      netprisma_fan_command:
+        url: "http://YOUR_SERVER_IP:8099/api/command"
+        method: POST
+        username: "admin"
+        password: !secret netprisma_dashboard_password
+        authentication: basic
+        headers:
+          Content-Type: "application/json"
+        payload: '{"device_key":"{{ device_key }}","action":"{{ action }}"}'
+
+Example service call from Home Assistant:
+
+    service: rest_command.netprisma_fan_command
+    data:
+      device_key: DEVICE_KEY
+      action: "on"
+
+Example actions:
+
+- `on`
+- `off`
+- `speed:1`
+- `speed:2`
+- `speed:3`
+- `osc_on`
+- `osc_off`
+- `sound_on`
+- `sound_off`
+
+Example all-fans REST command:
+
+    rest_command:
+      netprisma_all_fans:
+        url: "http://YOUR_SERVER_IP:8099/api/all"
+        method: POST
+        username: "admin"
+        password: !secret netprisma_dashboard_password
+        authentication: basic
+        headers:
+          Content-Type: "application/json"
+        payload: '{"action":"{{ action }}"}'
+
+Example all-fans service call:
+
+    service: rest_command.netprisma_all_fans
+    data:
+      action: "off"
+
+For full Home Assistant fan entities, create template fans on top of these REST commands and the `/api/state` response. The API returns each fan by device key, including power, speed, temperature, oscillation, sound, online status, and product key.
+
 ## Security
 
 Keep these private:
