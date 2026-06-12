@@ -1,0 +1,5 @@
+flask
+httpx[http2]
+websocket-client
+waitress
+pycryptodome

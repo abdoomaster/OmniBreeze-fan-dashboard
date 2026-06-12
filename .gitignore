@@ -1,0 +1,16 @@
+.env
+*.env
+__pycache__/
+*.pyc
+*.log
+.test-venv/
+jadx/
+xapk/
+*.apk
+*.xapk
+login_findings.txt
+login_algo_candidates.txt
+login_reverse_helpers.txt
+test_plain_login.py
+test_product_key_autodetect.py
+test_uid_fid_autodetect*.py

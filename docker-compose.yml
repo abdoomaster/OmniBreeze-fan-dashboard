@@ -1,0 +1,9 @@
+services:
+  netprisma-fan-dashboard:
+    build: .
+    container_name: netprisma-fan-dashboard
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8099:8099"
