@@ -106,83 +106,167 @@ Turn all fans off:
 
 ## Home Assistant integration
 
-This dashboard can be used as a small local bridge for Home Assistant. The container exposes REST endpoints that Home Assistant can poll and call without needing to reverse-engineer the fan inside Home Assistant itself.
+The dashboard can also act as a small local bridge for Home Assistant.
 
-Recommended setup:
+The container talks to the Landbook / NetPrisma cloud API and exposes a local `/api/state` endpoint. Home Assistant can poll that endpoint, then use template entities to make the fans feel like normal Home Assistant fan entities.
 
-- Run this container on the same LAN as Home Assistant.
-- Keep the dashboard behind Basic Auth.
-- Store the dashboard password in `secrets.yaml`.
-- Use `/api/state` for fan status.
-- Use `/api/command` for power, speed, oscillation, and sound commands.
-- Use `/api/all` for all-fan on/off commands.
+The basic flow is:
 
-Example `secrets.yaml`:
+1. `/api/state` gives Home Assistant the current state of each fan.
+2. `rest_command.netprisma_fan_command` sends commands back to the dashboard.
+3. Template fans turn those REST commands into normal `fan` entities.
+4. Optional template sensors and switches expose temperature and sound state.
+
+Replace these placeholders with your own values:
+
+- `YOUR_SERVER_IP`
+- `DEVICE_KEY_1`
+- `DEVICE_KEY_2`
+- `DEVICE_KEY_3`
+- entity names like `omnibreeze_fan_1`, `omnibreeze_fan_2`, etc.
+
+Do not publish your real device keys.
+
+### Example Home Assistant configuration
+
+Add this to `secrets.yaml`:
 
     netprisma_dashboard_password: change-me
 
-Example `configuration.yaml` REST command:
+Example `configuration.yaml`:
+
+    rest:
+      - resource: "http://YOUR_SERVER_IP:8099/api/state"
+        scan_interval: 10
+        authentication: basic
+        username: "admin"
+        password: !secret netprisma_dashboard_password
+        sensor:
+          - name: "OmniBreeze Fan 1 State"
+            unique_id: omnibreeze_fan_1_state
+            value_template: "{{ value_json.states.DEVICE_KEY_1.power }}"
+            json_attributes_path: "$.states.DEVICE_KEY_1"
+            json_attributes:
+              - power
+              - speed
+              - temperature
+              - oscillation
+              - sound
+              - online
+              - productKey
+
+          - name: "OmniBreeze Fan 2 State"
+            unique_id: omnibreeze_fan_2_state
+            value_template: "{{ value_json.states.DEVICE_KEY_2.power }}"
+            json_attributes_path: "$.states.DEVICE_KEY_2"
+            json_attributes:
+              - power
+              - speed
+              - temperature
+              - oscillation
+              - sound
+              - online
+              - productKey
+
+          - name: "OmniBreeze Fan 3 State"
+            unique_id: omnibreeze_fan_3_state
+            value_template: "{{ value_json.states.DEVICE_KEY_3.power }}"
+            json_attributes_path: "$.states.DEVICE_KEY_3"
+            json_attributes:
+              - power
+              - speed
+              - temperature
+              - oscillation
+              - sound
+              - online
+              - productKey
 
     rest_command:
       netprisma_fan_command:
         url: "http://YOUR_SERVER_IP:8099/api/command"
         method: POST
+        authentication: basic
         username: "admin"
         password: !secret netprisma_dashboard_password
-        authentication: basic
         headers:
           Content-Type: "application/json"
         payload: '{"device_key":"{{ device_key }}","action":"{{ action }}"}'
 
-Example service call from Home Assistant:
-
-    service: rest_command.netprisma_fan_command
-    data:
-      device_key: DEVICE_KEY
-      action: "on"
-
-Example actions:
-
-- `on`
-- `off`
-- `speed:1`
-- `speed:2`
-- `speed:3`
-- `osc_on`
-- `osc_off`
-- `sound_on`
-- `sound_off`
-
-Example all-fans REST command:
-
-    rest_command:
       netprisma_all_fans:
         url: "http://YOUR_SERVER_IP:8099/api/all"
         method: POST
+        authentication: basic
         username: "admin"
         password: !secret netprisma_dashboard_password
-        authentication: basic
         headers:
           Content-Type: "application/json"
         payload: '{"action":"{{ action }}"}'
 
-Example all-fans service call:
+    template:
+      - sensor:
+          - name: "OmniBreeze Fan 1 Temperature"
+            unique_id: omnibreeze_fan_1_temperature
+            unit_of_measurement: "°F"
+            state: "{{ state_attr('sensor.omnibreeze_fan_1_state', 'temperature') }}"
 
-    service: rest_command.netprisma_all_fans
-    data:
-      action: "off"
+          - name: "OmniBreeze Fan 2 Temperature"
+            unique_id: omnibreeze_fan_2_temperature
+            unit_of_measurement: "°F"
+            state: "{{ state_attr('sensor.omnibreeze_fan_2_state', 'temperature') }}"
 
-For full Home Assistant fan entities, create template fans on top of these REST commands and the `/api/state` response. The API returns each fan by device key, including power, speed, temperature, oscillation, sound, online status, and product key.
+          - name: "OmniBreeze Fan 3 Temperature"
+            unique_id: omnibreeze_fan_3_temperature
+            unit_of_measurement: "°F"
+            state: "{{ state_attr('sensor.omnibreeze_fan_3_state', 'temperature') }}"
 
-## Home Assistant dashboard example
+      - switch:
+          - name: "OmniBreeze Fan 1 Sound"
+            unique_id: omnibreeze_fan_1_sound
+            state: "{{ state_attr('sensor.omnibreeze_fan_1_state', 'sound') == 'on' }}"
+            turn_on:
+              - service: rest_command.netprisma_fan_command
+                data:
+                  device_key: "DEVICE_KEY_1"
+                  action: "sound_on"
+            turn_off:
+              - service: rest_command.netprisma_fan_command
+                data:
+                  device_key: "DEVICE_KEY_1"
+                  action: "sound_off"
 
-This is an example Home Assistant dashboard card using the fan entities, temperature sensors, and sound switches exposed through the REST/template integration.
+          - name: "OmniBreeze Fan 2 Sound"
+            unique_id: omnibreeze_fan_2_sound
+            state: "{{ state_attr('sensor.omnibreeze_fan_2_state', 'sound') == 'on' }}"
+            turn_on:
+              - service: rest_command.netprisma_fan_command
+                data:
+                  device_key: "DEVICE_KEY_2"
+                  action: "sound_on"
+            turn_off:
+              - service: rest_command.netprisma_fan_command
+                data:
+                  device_key: "DEVICE_KEY_2"
+                  action: "sound_off"
 
-![Home Assistant dashboard](assets/hass.png)
+          - name: "OmniBreeze Fan 3 Sound"
+            unique_id: omnibreeze_fan_3_sound
+            state: "{{ state_attr('sensor.omnibreeze_fan_3_state', 'sound') == 'on' }}"
+            turn_on:
+              - service: rest_command.netprisma_fan_command
+                data:
+                  device_key: "DEVICE_KEY_3"
+                  action: "sound_on"
+            turn_off:
+              - service: rest_command.netprisma_fan_command
+                data:
+                  device_key: "DEVICE_KEY_3"
+                  action: "sound_off"
 
-The top row uses native Home Assistant tile cards for fan control. The second row uses Mushroom template cards to show temperature and sound status. Holding or double-tapping the status cards toggles the fan sound switch.
+The example above shows the bridge pattern. Repeat the same idea for each fan you want to expose in Home Assistant.
 
-Example Lovelace card:
+### Example Lovelace card
+
+This example uses obfuscated entity names. Change the entity IDs to match your Home Assistant entities.
 
     type: vertical-stack
     cards:
@@ -195,8 +279,8 @@ Example Lovelace card:
         square: false
         cards:
           - type: tile
-            entity: fan.sami_fan
-            name: Sami Fan
+            entity: fan.omnibreeze_fan_1
+            name: Fan 1
             icon: mdi:fan
             vertical: false
             tap_action:
@@ -211,8 +295,8 @@ Example Lovelace card:
             features_position: bottom
 
           - type: tile
-            entity: fan.kitchen_fan
-            name: Kitchen Fan
+            entity: fan.omnibreeze_fan_2
+            name: Fan 2
             icon: mdi:fan
             vertical: false
             tap_action:
@@ -227,8 +311,8 @@ Example Lovelace card:
             features_position: bottom
 
           - type: tile
-            entity: fan.bedroom_fan
-            name: Bedroom Fan
+            entity: fan.omnibreeze_fan_3
+            name: Fan 3
             icon: mdi:fan
             vertical: false
             tap_action:
@@ -242,102 +326,8 @@ Example Lovelace card:
               - type: fan-oscillate
             features_position: bottom
 
-      - type: heading
-        heading: Fan Status
-        icon: mdi:thermometer
+The fan tiles above use native Home Assistant tile cards. If you also want the temperature/sound row shown in the screenshot, add Mushroom Cards and create template cards using your temperature sensors and sound switches.
 
-      - type: grid
-        columns: 3
-        square: false
-        cards:
-          - type: custom:mushroom-template-card
-            entity: sensor.sami_fan_temperature
-            primary: Sami
-            secondary: >
-              {{ states('sensor.sami_fan_temperature') }}
-              {{ state_attr('sensor.sami_fan_temperature', 'unit_of_measurement') or '°F' }}
-              · Sound {{ states('switch.sami_fan_sound') | title }}
-            icon: mdi:thermometer
-            icon_color: |
-              {% if is_state('switch.sami_fan_sound', 'on') %}
-                amber
-              {% else %}
-                disabled
-              {% endif %}
-            layout: horizontal
-            multiline_secondary: false
-            tap_action:
-              action: more-info
-            hold_action:
-              action: call-service
-              service: switch.toggle
-              target:
-                entity_id: switch.sami_fan_sound
-            double_tap_action:
-              action: call-service
-              service: switch.toggle
-              target:
-                entity_id: switch.sami_fan_sound
-
-          - type: custom:mushroom-template-card
-            entity: sensor.kitchen_fan_temperature
-            primary: Kitchen
-            secondary: >
-              {{ states('sensor.kitchen_fan_temperature') }}
-              {{ state_attr('sensor.kitchen_fan_temperature', 'unit_of_measurement') or '°F' }}
-              · Sound {{ states('switch.kitchen_fan_sound') | title }}
-            icon: mdi:thermometer
-            icon_color: |
-              {% if is_state('switch.kitchen_fan_sound', 'on') %}
-                amber
-              {% else %}
-                disabled
-              {% endif %}
-            layout: horizontal
-            multiline_secondary: false
-            tap_action:
-              action: more-info
-            hold_action:
-              action: call-service
-              service: switch.toggle
-              target:
-                entity_id: switch.kitchen_fan_sound
-            double_tap_action:
-              action: call-service
-              service: switch.toggle
-              target:
-                entity_id: switch.kitchen_fan_sound
-
-          - type: custom:mushroom-template-card
-            entity: sensor.bedroom_fan_temperature
-            primary: Bedroom
-            secondary: >
-              {{ states('sensor.bedroom_fan_temperature') }}
-              {{ state_attr('sensor.bedroom_fan_temperature', 'unit_of_measurement') or '°F' }}
-              · Sound {{ states('switch.bedroom_fan_sound') | title }}
-            icon: mdi:thermometer
-            icon_color: |
-              {% if is_state('switch.bedroom_fan_sound', 'on') %}
-                amber
-              {% else %}
-                disabled
-              {% endif %}
-            layout: horizontal
-            multiline_secondary: false
-            tap_action:
-              action: more-info
-            hold_action:
-              action: call-service
-              service: switch.toggle
-              target:
-                entity_id: switch.bedroom_fan_sound
-            double_tap_action:
-              action: call-service
-              service: switch.toggle
-              target:
-                entity_id: switch.bedroom_fan_sound
-
-Note: the status cards require the Mushroom Cards custom integration. The fan tiles use native Home Assistant tile cards.
 
 ## Security
 
