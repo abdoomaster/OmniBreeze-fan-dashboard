@@ -4,6 +4,8 @@ Local dashboard and REST API for OmniBreeze / Landbook tower fans using the stoc
 
 This project runs locally in Docker and provides:
 
+![Dashboard screenshot](assets/dashboard.png)
+
 - A local web dashboard
 - REST API endpoints
 - Landbook / NetPrisma email/password login
