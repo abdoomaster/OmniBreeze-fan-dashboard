@@ -4,8 +4,6 @@ Local dashboard and REST API for OmniBreeze / Landbook tower fans using the stoc
 
 This project runs locally in Docker and provides:
 
-![Dashboard screenshot](assets/dashboard.png)
-
 - A local web dashboard
 - REST API endpoints
 - Landbook / NetPrisma email/password login
@@ -15,7 +13,8 @@ This project runs locally in Docker and provides:
 - Power, speed, oscillation, and sound controls
 - Temperature and device status display
 - Basic-auth protection
-
+## Screenshot of the Dashboard
+![Dashboard screenshot](assets/dashboard.png)
 ## Important notes
 
 This project is unofficial and is not affiliated with NetPrisma, Landbook, Quectel, or OmniBreeze.
