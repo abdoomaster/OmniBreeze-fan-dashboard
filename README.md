@@ -108,6 +108,8 @@ Turn all fans off:
 
 The dashboard can also act as a small local bridge for Home Assistant.
 
+![Home Assistant dashboard example](assets/hass.png)
+
 The container talks to the Landbook / NetPrisma cloud API and exposes a local `/api/state` endpoint. Home Assistant can poll that endpoint, then use template entities to make the fans feel like normal Home Assistant fan entities.
 
 The basic flow is:
