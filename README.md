@@ -367,3 +367,17 @@ Keep these private:
 ## Disclaimer
 
 Use at your own risk. This project depends on private/unofficial cloud API behavior that may change without notice.
+
+## Fan speed count
+
+By default, the dashboard assumes a 3-speed fan.
+
+Some OmniBreeze models, such as 5-speed tower fans, support more speeds. To expose those speeds in the dashboard, set `FAN_SPEED_COUNT` in your `.env` file:
+
+    FAN_SPEED_COUNT=5
+
+If unset, the dashboard defaults to:
+
+    FAN_SPEED_COUNT=3
+
+The value is clamped between `1` and `12`.
