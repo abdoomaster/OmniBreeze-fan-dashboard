@@ -49,6 +49,14 @@ PRODUCT_KEY = os.environ.get("NETPRISMA_PRODUCT_KEY", "").strip()
 DASHBOARD_USER = os.environ.get("DASHBOARD_USER", "admin")
 DASHBOARD_PASS = os.environ.get("DASHBOARD_PASS", "admin")
 
+# Number of fan speeds the UI exposes. OmniBreeze sells 3- and 5-speed models;
+# default 3 preserves prior behavior. The device/command API accepts 1-12.
+try:
+    FAN_SPEED_COUNT = int(os.environ.get("FAN_SPEED_COUNT", "3"))
+except ValueError:
+    FAN_SPEED_COUNT = 3
+FAN_SPEED_COUNT = max(1, min(12, FAN_SPEED_COUNT))
+
 BUSINESS_REFRESH_TTL = 15
 def generate_login_random() -> str:
     chars = string.digits + string.ascii_uppercase[:25] + string.ascii_lowercase[:25]
@@ -1491,6 +1499,7 @@ HTML = """
 </div>
 
 <script>
+const FAN_SPEED_COUNT = {{ fan_speed_count }};
 let latestStates = {};
 
 function getState(deviceKey) {
@@ -1523,7 +1532,7 @@ function speedPercent(speed) {
 
   if (!n || n < 1) return 0;
 
-  return Math.min(100, Math.max(0, (n / 3) * 100));
+  return Math.min(100, Math.max(0, (n / FAN_SPEED_COUNT) * 100));
 }
 
 async function refreshState() {
@@ -1640,7 +1649,7 @@ function speedStep(deviceKey, delta, btn) {
   let next = current + delta;
 
   if (next < 1) next = 1;
-  if (next > 3) next = 3;
+  if (next > FAN_SPEED_COUNT) next = FAN_SPEED_COUNT;
 
   cmd(deviceKey, "speed:" + next, btn);
 }
@@ -1686,7 +1695,9 @@ def index():
     # Force refresh on page load so the dashboard opens with real current state.
     refresh_business_attributes_for_all(devices, force=True)
 
-    return render_template_string(HTML, devices=devices)
+    return render_template_string(
+        HTML, devices=devices, fan_speed_count=FAN_SPEED_COUNT
+    )
 
 
 @app.route("/api/state")
