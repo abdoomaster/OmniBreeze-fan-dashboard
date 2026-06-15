@@ -1729,7 +1729,9 @@ def api_command():
     device_key = body["device_key"]
     action = body["action"]
 
-    if action.startswith("speed:"):
+    is_speed_command = action.startswith("speed:")
+
+    if is_speed_command:
         speed = int(action.split(":", 1)[1])
 
         if speed < 1 or speed > 12:
@@ -1749,7 +1751,32 @@ def api_command():
     except Exception as e:
         print("Pre-command attribute refresh failed:", e)
 
+    with STATE_LOCK:
+        before_state = STATES.get(device_key, {}).copy()
+
+    was_off = before_state.get("power") == "off"
+    sound_was_on = before_state.get("sound") == "on"
+
     result = send_fan_command(device_key, payload)
+    sent_payloads = [payload.hex()]
+
+    # OmniBreeze quirk:
+    # If speed is selected while the fan is off, some models beep but stay off.
+    # Send speed first, then power on.
+    if is_speed_command and was_off:
+        time.sleep(0.5)
+        on_payload = build_payload(ACTIONS["on"][1], ACTIONS["on"][2])
+        on_result = send_fan_command(device_key, on_payload)
+        sent_payloads.append(on_payload.hex())
+        result["auto_power_on"] = on_result
+
+    # Keep fan muted after commands if HA/dashboard state says sound is on.
+    if sound_was_on and action != "sound_off":
+        time.sleep(0.2)
+        sound_payload = build_payload(ACTIONS["sound_off"][1], ACTIONS["sound_off"][2])
+        sound_result = send_fan_command(device_key, sound_payload)
+        sent_payloads.append(sound_payload.hex())
+        result["auto_sound_off"] = sound_result
 
     time.sleep(0.7)
 
@@ -1759,6 +1786,7 @@ def api_command():
         print("Post-command attribute refresh failed:", e)
 
     result["payload_hex"] = payload.hex()
+    result["payloads_hex"] = sent_payloads
 
     return jsonify(result)
 
