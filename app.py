@@ -1761,7 +1761,7 @@ def api_command():
     sent_payloads = [payload.hex()]
 
     # OmniBreeze quirk:
-    # If speed is selected while the fan is off, some models beep but stay off.
+    # If speed is selected while the fan is off, the fan may beep but stay off.
     # Send speed first, then power on.
     if is_speed_command and was_off:
         time.sleep(0.5)
@@ -1770,8 +1770,9 @@ def api_command():
         sent_payloads.append(on_payload.hex())
         result["auto_power_on"] = on_result
 
-    # Keep fan muted after commands if HA/dashboard state says sound is on.
-    if sound_was_on and action != "sound_off":
+    # If the fan is on and sound is on, mute it after commands.
+    # If the fan was off, do not waste a sound_off command.
+    if sound_was_on and not was_off and action != "sound_off":
         time.sleep(0.2)
         sound_payload = build_payload(ACTIONS["sound_off"][1], ACTIONS["sound_off"][2])
         sound_result = send_fan_command(device_key, sound_payload)
