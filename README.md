@@ -1,3 +1,4 @@
+Please use https://github.com/abdoomaster/OmniBreeze-HomeAssistant
 # NetPrisma Fan Dashboard
 
 Local dashboard and REST API for OmniBreeze / Landbook tower fans using the stock Wi-Fi module. Docker-based, Home Assistant friendly, with automatic device discovery.
