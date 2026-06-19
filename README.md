@@ -381,3 +381,69 @@ If unset, the dashboard defaults to:
     FAN_SPEED_COUNT=3
 
 The value is clamped between `1` and `12`.
+
+## Display light and countdown support
+
+The dashboard now supports the same Landbook / NetPrisma TSL mappings used by the Home Assistant integration for display light and countdown timer control.
+
+### New command actions
+
+Display / screen light:
+
+    display_on
+    display_off
+
+Countdown timer:
+
+    countdown_cancel
+    countdown_1h
+    countdown_2h
+    countdown_3h
+    countdown_4h
+    countdown_5h
+    countdown_6h
+    countdown_7h
+    countdown_8h
+    countdown_9h
+    countdown_10h
+    countdown_11h
+    countdown_12h
+
+### TSL mappings
+
+Known OmniBreeze / Landbook / NetPrisma mappings:
+
+    switch           id 1   → off 0x0008 / on 0x0009
+    working_mode     id 2   → 0x0012
+    wind_speed       id 3   → 0x001A
+    swing_wind       id 5   → off 0x0028 / on 0x0029
+    sound            id 13  → off 0x0068 / on 0x0069
+    screen_display   id 15  → off 0x0078 / on 0x0079
+    countdown        id 22  → 0x00B2
+
+### API examples
+
+Turn display on:
+
+    curl -u admin:admin -X POST http://192.168.1.50:8099/api/command \
+      -H "Content-Type: application/json" \
+      -d '{"device_key":"A8DD9FE2F01F","action":"display_on"}'
+
+Turn display off:
+
+    curl -u admin:admin -X POST http://192.168.1.50:8099/api/command \
+      -H "Content-Type: application/json" \
+      -d '{"device_key":"A8DD9FE2F01F","action":"display_off"}'
+
+Set countdown to 4 hours:
+
+    curl -u admin:admin -X POST http://192.168.1.50:8099/api/command \
+      -H "Content-Type: application/json" \
+      -d '{"device_key":"A8DD9FE2F01F","action":"countdown_4h"}'
+
+Cancel countdown:
+
+    curl -u admin:admin -X POST http://192.168.1.50:8099/api/command \
+      -H "Content-Type: application/json" \
+      -d '{"device_key":"A8DD9FE2F01F","action":"countdown_cancel"}'
+

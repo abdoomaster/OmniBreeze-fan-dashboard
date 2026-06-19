@@ -139,6 +139,25 @@ ACTIONS = {
     "sound_off": ("Sound Off", 0x0068, None),
     "osc_on": ("Oscillation On", 0x0029, None),
     "osc_off": ("Oscillation Off", 0x0028, None),
+
+    # Display / screen light
+    "display_off": ("Display Off", 0x0078, None),
+    "display_on": ("Display On", 0x0079, None),
+
+    # Countdown timer
+    "countdown_cancel": ("Countdown Cancel", 0x00B2, 0),
+    "countdown_1h": ("Countdown 1 Hour", 0x00B2, 1),
+    "countdown_2h": ("Countdown 2 Hours", 0x00B2, 2),
+    "countdown_3h": ("Countdown 3 Hours", 0x00B2, 3),
+    "countdown_4h": ("Countdown 4 Hours", 0x00B2, 4),
+    "countdown_5h": ("Countdown 5 Hours", 0x00B2, 5),
+    "countdown_6h": ("Countdown 6 Hours", 0x00B2, 6),
+    "countdown_7h": ("Countdown 7 Hours", 0x00B2, 7),
+    "countdown_8h": ("Countdown 8 Hours", 0x00B2, 8),
+    "countdown_9h": ("Countdown 9 Hours", 0x00B2, 9),
+    "countdown_10h": ("Countdown 10 Hours", 0x00B2, 10),
+    "countdown_11h": ("Countdown 11 Hours", 0x00B2, 11),
+    "countdown_12h": ("Countdown 12 Hours", 0x00B2, 12),
 }
 
 
@@ -1770,9 +1789,9 @@ def api_command():
         sent_payloads.append(on_payload.hex())
         result["auto_power_on"] = on_result
 
-    # If the fan is on and sound is on, mute it after commands.
-    # If the fan was off, do not waste a sound_off command.
-    if sound_was_on and not was_off and action != "sound_off":
+    # If sound is on, mute it after commands.
+    # Testing confirmed sound_off works even while fan power is off.
+    if sound_was_on and action != "sound_off":
         time.sleep(0.2)
         sound_payload = build_payload(ACTIONS["sound_off"][1], ACTIONS["sound_off"][2])
         sound_result = send_fan_command(device_key, sound_payload)
